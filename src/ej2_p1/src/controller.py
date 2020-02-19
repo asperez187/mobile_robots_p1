@@ -15,6 +15,7 @@ class Robot_bumper():
         self.robot_name = robot_name
         self.vel = Twist()
         self.scan = LaserScan()
+        self.state = "straight"
         self.sub_scan = rospy.Subscriber(self.robot_name+"/scan", LaserScan, self.callback_laser)
         self.pub_cmd = rospy.Publisher(self.robot_name+"/cmd_vel", Twist, queue_size=5)
         self.rate = rospy.Rate(10) # 0.1 seconds sleep
@@ -23,20 +24,37 @@ class Robot_bumper():
         """ Callback laser """
         self.scan = np.array(msg.ranges)
         # self.bumper = msg.ranges[:, 120]
-        self.bumper_left = np.mean(self.scan[:119])
-        self.bumper_middle = np.mean(self.scan[120 : 239])
-        self.bumper_right = np.mean(self.scan[240:])
+        self.bumper_left = np.mean(self.scan[90:149])
+        self.bumper_middle = np.mean(self.scan[150 : 209])
+        self.bumper_right = np.mean(self.scan[210 : 269])
 
     def vel_straight(self):
         """ Go straight """
         self.vel.linear.x = 0.3
         self.vel.angular.z = 0.0
         self.pub_cmd.publish(self.vel)
-    
+
+    def vel_right(self):
+        """ Go right """
+        self.vel.linear.x = 0.0
+        self.vel.angular.z = -0.3
+        self.pub_cmd.publish(self.vel)
+
+    def vel_left(self):
+        """ Go left """
+        self.vel.linear.x = 0.0
+        self.vel.angular.z = 0.3
+        self.pub_cmd.publish(self.vel)
 
     def control(self):
-        """ hola """
-        # while not rospy.is_shutdown():
+        """ Control node """
+        while not rospy.is_shutdown():
+            if self.state == "straight":
+                self.vel_straight()
+            elif self.state == "turn_right":
+                self.vel_right()
+            elif self.state == "turn_left":
+                self.vel_left()
 
 
 def main():
