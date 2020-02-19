@@ -3,5 +3,6 @@
         "/home/nestoregon/ROS/installed_packages/turtlebot_3/devel/lib/python2.7/dist-packages",
         "/opt/ros/melodic/lib/python2.7/dist-packages"
     ],
-    "python.linting.enabled": false
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true
 }
