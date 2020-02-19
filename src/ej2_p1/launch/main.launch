@@ -7,5 +7,5 @@
      args="$(find turtlebot3_gazebo)/worlds/turtlebot3_stage_1.world" respawn="false" output="screen" />
     <!-- <node name="gazebo_gui" pkg="gazebo" type="gui" respawn="false" output="screen"/> -->
   
-    <include file="$(find multi_robot)/launch/robots.launch"/>
+    <include file="$(find ej2_p1)/launch/robots.launch"/>
   </launch>
