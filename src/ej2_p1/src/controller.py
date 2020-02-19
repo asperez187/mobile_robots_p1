@@ -4,7 +4,6 @@
 import sys
 import rospy
 import numpy as np
-import random
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 
@@ -12,7 +11,7 @@ MIN_BUMP_DISTANCE = 0.2
 LINEAR_SPEED = 0.15
 ANGULAR_SPEED = 0.5
 
-class Robot_bumper():
+class RobotBumper():
     """ Class of the control """
     def __init__(self, robot_name):
         self.robot_name = robot_name
@@ -75,8 +74,8 @@ class Robot_bumper():
             self.state = "turn_right"
         elif self.bumper_right < MIN_BUMP_DISTANCE:
             self.state = "turn_left"
-        elif self.bumper_middle < MIN_BUMP_DISTANCE:
-            self.state = "turn_right"
+        elif self.bumper_middle < 0.1:
+            self.state = "backwards"
         else:
             self.state = "straight"
 
@@ -93,13 +92,15 @@ class Robot_bumper():
                 self.vel_right()
             elif self.state == "turn_left":
                 self.vel_left()
+            elif self.state == "backwards":
+                self.vel_backwards()
             # sleep
             self.rate.sleep()
 
 
 def main():
     """Main function"""
-    robot_class = Robot_bumper(str(sys.argv[1]))
+    robot_class = RobotBumper(str(sys.argv[1]))
     robot_class.control()
     rospy.spin()
 
