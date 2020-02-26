@@ -30,8 +30,9 @@ class RobotBumper():
         """ Callback laser """
         self.scan = np.array(msg.ranges)
         self.bumper_left = np.amin(self.scan[30 : 90])
-        self.bumper_middle = np.amin((np.amin(self.scan[330 : 359]),np.amin(self.scan[0 : 29])))
+        self.bumper_middle = np.amin((np.amin(self.scan[330 : 359]), np.amin(self.scan[0 : 29])))
         self.bumper_right = np.amin(self.scan[270 : 329])
+        self.laser_back = np.amin(self.scan[150 : 210])
 
     def vel_stop(self):
         """ Stop """
@@ -83,7 +84,7 @@ class RobotBumper():
         """ Control node """
         while not rospy.is_shutdown():
             self.check_state()
-            # move accordingly to the state
+            # move according to the state
             if self.state == "stop":
                 self.vel_stop()
             elif self.state == "straight":
@@ -111,4 +112,3 @@ if __name__ == "__main__":
         main()
     except rospy.ROSInterruptException:
         print("Shutting down publisher")
-        pass
