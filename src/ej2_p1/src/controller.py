@@ -15,16 +15,24 @@ class RobotBumper():
     """ Class of the control """
     def __init__(self, robot_name):
         self.robot_name = robot_name
+        for i in self.robot_name:
+            if i.isdigit():
+                self.robot_id = int(i)
         self.vel = Twist()
+        self.odom = Odometry()
         self.scan = LaserScan()
-        self.state = "stop"
+        self.state_drive = "drive"
+        self.state = 1 # 1 = stop, 2 = drive, 3 = turn
         self.sub_scan = rospy.Subscriber(self.robot_name+"/scan", LaserScan, self.callback_laser)
+        self.sub_scan = rospy.Subscriber(self.robot_name+"/odom", LaserScan, self.callback_odom)
         self.pub_cmd = rospy.Publisher(self.robot_name+"/cmd_vel", Twist, queue_size=5)
         self.rate = rospy.Rate(1) # 0.1 seconds sleep
         self.bumper_right = 0
         self.bumper_left = 0
         self.bumper_middle = 0
 
+    def callback_odom(self, msg):
+        self.odom.pose.pose.orientation = msg.pose.pose.orientation
 
     def callback_laser(self, msg):
         """ Callback laser """
@@ -32,7 +40,6 @@ class RobotBumper():
         self.bumper_left = np.amin(self.scan[30 : 90])
         self.bumper_middle = np.amin((np.amin(self.scan[330 : 359]), np.amin(self.scan[0 : 29])))
         self.bumper_right = np.amin(self.scan[270 : 329])
-        self.laser_back = np.amin(self.scan[150 : 210])
 
     def vel_stop(self):
         """ Stop """
@@ -64,40 +71,54 @@ class RobotBumper():
         self.vel.angular.z = ANGULAR_SPEED
         self.pub_cmd.publish(self.vel)
 
-    def check_state(self):
+    def check_drive_state(self):
         """ Changing state of the program """
         rospy.loginfo("--------------")
         rospy.loginfo(self.bumper_left)
         rospy.loginfo(self.bumper_middle)
         rospy.loginfo(self.bumper_right)
 
+        if self.laser_back < MIN_BUMP_DISTANCE:
+            self.state_drive = "straight"
         if self.bumper_left < MIN_BUMP_DISTANCE:
-            self.state = "turn_right"
+            self.state_drive = "turn_right"
         elif self.bumper_right < MIN_BUMP_DISTANCE:
-            self.state = "turn_left"
+            self.state_drive = "turn_left"
         elif self.bumper_middle < 0.1:
-            self.state = "backwards"
+            self.state_drive = "backwards"
         else:
-            self.state = "straight"
+            self.state_drive = "straight"
+
+
+    def drive(self):
+        self.check_drive_state()
+        # drive
+        if self.state_drive == "stop":
+            self.vel_stop()
+        elif self.state_drive == "straight":
+            self.vel_straight()
+        elif self.state_drive == "turn_right":
+            self.vel_right()
+        elif self.state_drive == "turn_left":
+            self.vel_left()
+        elif self.state_drive == "backwards":
+            self.vel_backwards()
+        # sleep
+
+    def turn_180(self):
+        # ejecutar el turn
 
     def control(self):
         """ Control node """
         while not rospy.is_shutdown():
-            self.check_state()
-            # move according to the state
-            if self.state == "stop":
-                self.vel_stop()
-            elif self.state == "straight":
-                self.vel_straight()
-            elif self.state == "turn_right":
-                self.vel_right()
-            elif self.state == "turn_left":
-                self.vel_left()
-            elif self.state == "backwards":
-                self.vel_backwards()
-            # sleep
-            self.rate.sleep()
+            if self.state == 1:
+                self.stop()
+            elif self.state == 2:
+                self.drive()
+            elif self.state == 3:
+                self.turn_180()
 
+            self.rate.sleep()
 
 def main():
     """Main function"""
