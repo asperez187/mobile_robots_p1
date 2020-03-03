@@ -4,8 +4,8 @@
     <!-- start world -->
 
     <node name="gazebo" pkg="gazebo_ros" type="gazebo" 
-     args="$(find turtlebot3_gazebo)/worlds/empty.world" respawn="false" output="screen" />
+     args="$(find ej5_p1)/world/nestor.world" respawn="false" output="screen" />
     <!-- <node name="gazebo_gui" pkg="gazebo" type="gui" respawn="false" output="screen"/> -->
   
-    <include file="$(find ej4_p1)/launch/robots.launch"/>
+    <include file="$(find ej5_p1)/launch/robots.launch"/>
   </launch>
